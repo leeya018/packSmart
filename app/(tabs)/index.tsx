@@ -89,7 +89,7 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.scrollView}
-        keyboardShouldPersistTaps="always"
+        keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.title}>Travel Packing Assistant</Text>
         <View style={styles.inputContainer}>
@@ -122,6 +122,17 @@ export default function App() {
               },
             }}
           />
+          {/* <TextInput
+            style={[
+              styles.input,
+              showErrors && validateForm().destination && styles.inputError,
+            ]}
+            placeholder="destination"
+            value={destination}
+            onChangeText={setDestination}
+            keyboardType="default"
+            accessibilityLabel="Enter a destination"
+          /> */}
           {showErrors && validateForm().destination && (
             <Text style={styles.errorText}>Please enter a destination</Text>
           )}
