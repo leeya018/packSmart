@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View, FlatList } from "react-native";
+import { StyleSheet, Text, View, FlatList, ScrollView } from "react-native";
 
 interface PackingListProps {
   items: string[];
@@ -12,12 +12,14 @@ const PackingList: React.FC<PackingListProps> = ({ items }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Packing List:</Text>
-      <FlatList
-        data={items}
-        renderItem={({ item }) => <Text style={styles.item}>• {item}</Text>}
-        keyExtractor={(item, index) => index.toString()}
-      />
+      <ScrollView>
+        <Text style={styles.title}>Packing List:</Text>
+        <FlatList
+          data={items}
+          renderItem={({ item }) => <Text style={styles.item}>• {item}</Text>}
+          keyExtractor={(item, index) => index.toString()}
+        />
+      </ScrollView>
     </View>
   );
 };

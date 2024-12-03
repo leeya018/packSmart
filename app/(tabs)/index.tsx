@@ -10,9 +10,13 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
+import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import PackingList from "@/components/PackingList";
 import ActivitySelector from "@/components/ActivitySelector";
 import { generatePackingList } from "@/utils/packingListGenerator";
+import "react-native-get-random-values";
+
+import Constants from "expo-constants";
 
 const ACTIVITIES = [
   "Swimming",
@@ -43,6 +47,10 @@ export default function App() {
   const [modalVisible, setModalVisible] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
 
+  // const googleApiKey = "AIzaSyDF4sDPUfs72HyRbp6-_LEH3OJp8P_aEPw";
+  const googleApiKey = Constants?.expoConfig?.extra?.googleApiKey;
+  console.log(googleApiKey);
+  console.log("googleApiKey");
   const validateForm = () => {
     const errors = {
       destination: destination.trim() === "",
@@ -82,15 +90,24 @@ export default function App() {
       <ScrollView contentContainerStyle={styles.scrollView}>
         <Text style={styles.title}>Travel Packing Assistant</Text>
         <View style={styles.inputContainer}>
-          <TextInput
-            style={[
-              styles.input,
-              showErrors && validateForm().destination && styles.inputError,
-            ]}
-            placeholder="Destination"
-            value={destination}
-            onChangeText={setDestination}
-            accessibilityLabel="Enter destination"
+          <GooglePlacesAutocomplete
+            placeholder="Enter destination"
+            onPress={(data, details = null) => {
+              setDestination(data.description);
+            }}
+            query={{
+              key: googleApiKey,
+              types: "(cities)",
+            }}
+            styles={{
+              textInputContainer: styles.autocompleteContainer,
+              textInput: styles.autocompleteInput,
+            }}
+            fetchDetails={true}
+            enablePoweredByContainer={false}
+            minLength={1}
+            onFail={(error) => console.error(error)}
+            onNotFound={() => console.log("no results")}
           />
           {showErrors && validateForm().destination && (
             <Text style={styles.errorText}>Please enter a destination</Text>
@@ -216,5 +233,15 @@ const styles = StyleSheet.create({
     color: "white",
     textAlign: "center",
     fontSize: 16,
+  },
+  autocompleteContainer: {
+    borderColor: "gray",
+    borderWidth: 1,
+    borderRadius: 5,
+  },
+  autocompleteInput: {
+    height: 40,
+    fontSize: 16,
+    paddingHorizontal: 10,
   },
 });
