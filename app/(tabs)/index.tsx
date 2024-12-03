@@ -118,7 +118,6 @@ export default function App() {
             textInputProps={{
               value: destination,
               onChangeText: (text) => {
-                console.log(text);
                 setDestination(text);
               },
             }}

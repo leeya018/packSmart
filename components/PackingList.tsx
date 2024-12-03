@@ -12,7 +12,7 @@ const PackingList: React.FC<PackingListProps> = ({ items }) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView>
+      <ScrollView style={styles.scrollview}>
         <Text style={styles.title}>Packing List:</Text>
         <FlatList
           data={items}
@@ -27,6 +27,9 @@ const PackingList: React.FC<PackingListProps> = ({ items }) => {
 const styles = StyleSheet.create({
   container: {
     marginTop: 20,
+  },
+  scrollview: {
+    marginBottom: 30,
   },
   title: {
     fontSize: 18,
