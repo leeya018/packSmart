@@ -11,7 +11,7 @@ interface ActivitySelectorProps {
   activities: string[];
   selectedActivities: string[];
   onToggleActivity: (activity: string) => void;
-  onClose: (selectedActivities: string[]) => void;
+  onClose: () => void;
 }
 
 const ActivitySelector: React.FC<ActivitySelectorProps> = ({
@@ -24,7 +24,7 @@ const ActivitySelector: React.FC<ActivitySelectorProps> = ({
     <View style={styles.centeredView}>
       <View style={styles.modalView}>
         <Text style={styles.modalTitle}>Select Activities</Text>
-        <ScrollView>
+        <ScrollView style={styles.activitiesList}>
           {activities.map((activity) => (
             <TouchableOpacity
               key={activity}
@@ -35,14 +35,19 @@ const ActivitySelector: React.FC<ActivitySelectorProps> = ({
               ]}
               onPress={() => onToggleActivity(activity)}
             >
-              <Text style={styles.activityText}>{activity}</Text>
+              <Text
+                style={[
+                  styles.activityText,
+                  selectedActivities.includes(activity) &&
+                    styles.selectedActivityText,
+                ]}
+              >
+                {activity}
+              </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={() => onClose(selectedActivities)}
-        >
+        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
           <Text style={styles.closeButtonText}>Done</Text>
         </TouchableOpacity>
       </View>
@@ -78,6 +83,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 15,
   },
+  activitiesList: {
+    width: "100%",
+  },
   activityItem: {
     padding: 10,
     marginVertical: 5,
@@ -89,6 +97,9 @@ const styles = StyleSheet.create({
   },
   activityText: {
     fontSize: 16,
+  },
+  selectedActivityText: {
+    color: "white",
   },
   closeButton: {
     marginTop: 20,

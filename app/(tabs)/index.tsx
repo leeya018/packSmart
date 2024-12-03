@@ -4,11 +4,11 @@ import {
   Text,
   View,
   TextInput,
-  Button,
   SafeAreaView,
   ScrollView,
   Modal,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import PackingList from "@/components/PackingList";
 import ActivitySelector from "@/components/ActivitySelector";
@@ -23,6 +23,16 @@ const ACTIVITIES = [
   "City exploration",
   "Mountain climbing",
   "Camping",
+  "Snorkeling",
+  "Scuba diving",
+  "Surfing",
+  "Kayaking",
+  "Cycling",
+  "Photography",
+  "Wildlife watching",
+  "Museum visits",
+  "Food tours",
+  "Yoga retreats",
 ];
 
 export default function App() {
@@ -31,8 +41,30 @@ export default function App() {
   const [activities, setActivities] = useState<string[]>([]);
   const [packingList, setPackingList] = useState<string[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
+
+  const validateForm = () => {
+    const errors = {
+      destination: destination.trim() === "",
+      days: days.trim() === "" || isNaN(Number(days)) || Number(days) <= 0,
+      activities: activities.length === 0,
+    };
+    return errors;
+  };
 
   const handleGenerateList = () => {
+    const errors = validateForm();
+    setShowErrors(true);
+
+    if (Object.values(errors).some((error) => error)) {
+      let errorMessage = "Please correct the following errors:\n";
+      if (errors.destination) errorMessage += "- Enter a destination\n";
+      if (errors.days) errorMessage += "- Enter a valid number of days\n";
+      if (errors.activities) errorMessage += "- Select at least one activity\n";
+      Alert.alert("Incomplete Form", errorMessage);
+      return;
+    }
+
     const list = generatePackingList(destination, parseInt(days), activities);
     setPackingList(list);
   };
@@ -45,57 +77,83 @@ export default function App() {
     );
   };
 
-  const checkFormValidity = () => {
-    // Add your form validation logic here
-    console.log("Form validity checked");
-  };
-
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.scrollView}>
+      <ScrollView contentContainerStyle={styles.scrollView}>
         <Text style={styles.title}>Travel Packing Assistant</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Destination"
-          value={destination}
-          onChangeText={setDestination}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Number of Days"
-          value={days}
-          onChangeText={setDays}
-          keyboardType="numeric"
-        />
-        <Button
-          title="Select Activities"
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={[
+              styles.input,
+              showErrors && validateForm().destination && styles.inputError,
+            ]}
+            placeholder="Destination"
+            value={destination}
+            onChangeText={setDestination}
+            accessibilityLabel="Enter destination"
+          />
+          {showErrors && validateForm().destination && (
+            <Text style={styles.errorText}>Please enter a destination</Text>
+          )}
+        </View>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={[
+              styles.input,
+              showErrors && validateForm().days && styles.inputError,
+            ]}
+            placeholder="Number of Days"
+            value={days}
+            onChangeText={setDays}
+            keyboardType="numeric"
+            accessibilityLabel="Enter number of days"
+          />
+          {showErrors && validateForm().days && (
+            <Text style={styles.errorText}>
+              Please enter a valid number of days
+            </Text>
+          )}
+        </View>
+        <TouchableOpacity
+          style={styles.selectActivitiesButton}
           onPress={() => setModalVisible(true)}
-        />
-        <Text style={styles.activitiesText}>
-          Selected activities: {activities.join(", ")}
-        </Text>
-        <Button title="Generate Packing List" onPress={handleGenerateList} />
+          accessibilityLabel="Select activities"
+        >
+          <Text style={styles.selectActivitiesButtonText}>
+            Select Activities
+          </Text>
+        </TouchableOpacity>
+        <View style={styles.inputContainer}>
+          <Text style={styles.activitiesText}>
+            Selected activities: {activities.join(", ")}
+          </Text>
+          {showErrors && validateForm().activities && (
+            <Text style={styles.errorText}>
+              Please select at least one activity
+            </Text>
+          )}
+        </View>
+        <TouchableOpacity
+          style={styles.generateButton}
+          onPress={handleGenerateList}
+          accessibilityLabel="Generate packing list"
+        >
+          <Text style={styles.generateButtonText}>Generate Packing List</Text>
+        </TouchableOpacity>
         <PackingList items={packingList} />
-      </View>
+      </ScrollView>
 
       <Modal
         animationType="slide"
         transparent={true}
         visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(false);
-          checkFormValidity();
-        }}
+        onRequestClose={() => setModalVisible(false)}
       >
         <ActivitySelector
           activities={ACTIVITIES}
           selectedActivities={activities}
           onToggleActivity={toggleActivity}
-          onClose={(selectedActivities) => {
-            setActivities(selectedActivities);
-            setModalVisible(false);
-            checkFormValidity();
-          }}
+          onClose={() => setModalVisible(false)}
         />
       </Modal>
     </SafeAreaView>
@@ -116,14 +174,47 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
   },
+  inputContainer: {
+    marginBottom: 15,
+  },
   input: {
     height: 40,
     borderColor: "gray",
     borderWidth: 1,
-    marginBottom: 10,
     paddingHorizontal: 10,
+    borderRadius: 5,
+  },
+  inputError: {
+    borderColor: "red",
+  },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    marginTop: 5,
+  },
+  selectActivitiesButton: {
+    backgroundColor: "#007AFF",
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 15,
+  },
+  selectActivitiesButtonText: {
+    color: "white",
+    textAlign: "center",
+    fontSize: 16,
   },
   activitiesText: {
-    marginVertical: 10,
+    marginBottom: 5,
+  },
+  generateButton: {
+    backgroundColor: "#007AFF",
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 15,
+  },
+  generateButtonText: {
+    color: "white",
+    textAlign: "center",
+    fontSize: 16,
   },
 });

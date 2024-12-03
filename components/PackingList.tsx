@@ -13,7 +13,6 @@ const PackingList: React.FC<PackingListProps> = ({ items }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Packing List:</Text>
-
       <FlatList
         data={items}
         renderItem={({ item }) => <Text style={styles.item}>• {item}</Text>}

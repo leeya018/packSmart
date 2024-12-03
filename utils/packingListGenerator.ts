@@ -20,28 +20,33 @@ export function generatePackingList(
     packingList.push(`${item} (${days})`);
   });
 
-  // Add items based on destination
-  if (destination.toLowerCase().includes("beach")) {
-    packingList.push("Swimsuit", "Sunscreen", "Beach towel");
-  }
-
-  if (destination.toLowerCase().includes("mountain")) {
-    packingList.push("Hiking boots", "Warm jacket");
-  }
-
   // Add items based on activities
   activities.forEach((activity) => {
-    switch (activity.toLowerCase().trim()) {
+    switch (activity.toLowerCase()) {
       case "swimming":
-        packingList.push("Swimsuit", "Goggles");
+        packingList.push("Swimsuit", "Goggles", "Beach towel");
         break;
       case "hiking":
-        packingList.push("Hiking boots", "Water bottle");
+        packingList.push("Hiking boots", "Water bottle", "Backpack");
         break;
       case "skiing":
-        packingList.push("Ski gear", "Warm clothing");
+        packingList.push("Ski gear", "Warm clothing", "Gloves");
         break;
-      // Add more activities and corresponding items as needed
+      case "sightseeing":
+        packingList.push("Comfortable walking shoes", "Camera", "City map");
+        break;
+      case "beach":
+        packingList.push("Sunscreen", "Beach umbrella", "Flip flops");
+        break;
+      case "city exploration":
+        packingList.push("Comfortable shoes", "City guide", "Day bag");
+        break;
+      case "mountain climbing":
+        packingList.push("Climbing gear", "First-aid kit", "Energy bars");
+        break;
+      case "camping":
+        packingList.push("Tent", "Sleeping bag", "Camping stove");
+        break;
     }
   });
 
