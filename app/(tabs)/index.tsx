@@ -1,74 +1,129 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  Button,
+  SafeAreaView,
+  ScrollView,
+  Modal,
+  TouchableOpacity,
+} from "react-native";
+import PackingList from "@/components/PackingList";
+import ActivitySelector from "@/components/ActivitySelector";
+import { generatePackingList } from "@/utils/packingListGenerator";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const ACTIVITIES = [
+  "Swimming",
+  "Hiking",
+  "Skiing",
+  "Sightseeing",
+  "Beach",
+  "City exploration",
+  "Mountain climbing",
+  "Camping",
+];
 
-export default function HomeScreen() {
+export default function App() {
+  const [destination, setDestination] = useState("");
+  const [days, setDays] = useState("");
+  const [activities, setActivities] = useState<string[]>([]);
+  const [packingList, setPackingList] = useState<string[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const handleGenerateList = () => {
+    const list = generatePackingList(destination, parseInt(days), activities);
+    setPackingList(list);
+  };
+
+  const toggleActivity = (activity: string) => {
+    setActivities((prev) =>
+      prev.includes(activity)
+        ? prev.filter((a) => a !== activity)
+        : [...prev, activity]
+    );
+  };
+
+  const checkFormValidity = () => {
+    // Add your form validation logic here
+    console.log("Form validity checked");
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <SafeAreaView style={styles.container}>
+      <View style={styles.scrollView}>
+        <Text style={styles.title}>Travel Packing Assistant</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Destination"
+          value={destination}
+          onChangeText={setDestination}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <TextInput
+          style={styles.input}
+          placeholder="Number of Days"
+          value={days}
+          onChangeText={setDays}
+          keyboardType="numeric"
+        />
+        <Button
+          title="Select Activities"
+          onPress={() => setModalVisible(true)}
+        />
+        <Text style={styles.activitiesText}>
+          Selected activities: {activities.join(", ")}
+        </Text>
+        <Button title="Generate Packing List" onPress={handleGenerateList} />
+        <PackingList items={packingList} />
+      </View>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(false);
+          checkFormValidity();
+        }}
+      >
+        <ActivitySelector
+          activities={ACTIVITIES}
+          selectedActivities={activities}
+          onToggleActivity={toggleActivity}
+          onClose={(selectedActivities) => {
+            setActivities(selectedActivities);
+            setModalVisible(false);
+            checkFormValidity();
+          }}
+        />
+      </Modal>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  scrollView: {
+    padding: 20,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  input: {
+    height: 40,
+    borderColor: "gray",
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
+  activitiesText: {
+    marginVertical: 10,
   },
 });
