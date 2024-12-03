@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -47,10 +47,10 @@ export default function App() {
   const [modalVisible, setModalVisible] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
 
+  const googlePlacesRef = useRef<any>(null);
   // const googleApiKey = "AIzaSyDF4sDPUfs72HyRbp6-_LEH3OJp8P_aEPw";
   const googleApiKey = Constants?.expoConfig?.extra?.googleApiKey;
-  console.log(googleApiKey);
-  console.log("googleApiKey");
+
   const validateForm = () => {
     const errors = {
       destination: destination.trim() === "",
@@ -87,13 +87,20 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollView}>
+      <ScrollView
+        contentContainerStyle={styles.scrollView}
+        keyboardShouldPersistTaps="always"
+      >
         <Text style={styles.title}>Travel Packing Assistant</Text>
         <View style={styles.inputContainer}>
           <GooglePlacesAutocomplete
+            ref={googlePlacesRef}
+            listViewDisplayed={false}
             placeholder="Enter destination"
             onPress={(data, details = null) => {
+              console.log("I am onpress");
               setDestination(data.description);
+              googlePlacesRef.current?.setAddressText(data.description);
             }}
             query={{
               key: googleApiKey,
@@ -108,6 +115,13 @@ export default function App() {
             minLength={1}
             onFail={(error) => console.error(error)}
             onNotFound={() => console.log("no results")}
+            textInputProps={{
+              value: destination,
+              onChangeText: (text) => {
+                console.log(text);
+                setDestination(text);
+              },
+            }}
           />
           {showErrors && validateForm().destination && (
             <Text style={styles.errorText}>Please enter a destination</Text>
