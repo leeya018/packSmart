@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   StyleSheet,
+  Modal,
   Text,
   View,
   TextInput,
@@ -15,14 +16,46 @@ import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import axios from "axios";
+import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
+import Constants from "expo-constants";
+import ActivitySelector from "@/components/ActivitySelector";
+
+const ACTIVITIES = [
+  "Swimming",
+  "Hiking",
+  "Skiing",
+  "Sightseeing",
+  "Beach",
+  "City exploration",
+  "Mountain climbing",
+  "Camping",
+  "Snorkeling",
+  "Scuba diving",
+  "Surfing",
+  "Kayaking",
+  "Cycling",
+  "Photography",
+  "Wildlife watching",
+  "Museum visits",
+  "Food tours",
+  "Yoga retreats",
+];
 
 export default function TabTwoScreen() {
   const [destination, setDestination] = useState("israel");
   const [days, setDays] = useState("12");
   const [arrivaleDate, setArrivaleDate] = useState(new Date());
+  const [activities, setActivities] = useState<string[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+
   const [packingList, setPackingList] = useState([]);
+
   const [showPicker, setShowPicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
+
+  const googlePlacesRef = useRef<any>(null);
+  const googleApiKey = Constants?.expoConfig?.extra?.googleApiKey;
 
   const handleDateChange = (event: DateTimePickerEvent, date?: Date) => {
     if (date) {
@@ -30,16 +63,31 @@ export default function TabTwoScreen() {
     }
   };
 
+  const toggleActivity = (activity: string) => {
+    setActivities((prev) =>
+      prev.includes(activity)
+        ? prev.filter((a) => a !== activity)
+        : [...prev, activity]
+    );
+  };
+
   const generatePackList = async () => {
     setShowPicker(false);
     setPackingList([]); // Clear previous packing list
     setLoading(true); // Show loading spinner
     const baseUrl = "http://172.20.10.4:5000";
-    const conutry = "Israel";
-    const date = new Date(arrivaleDate);
-    const daysToStay = 12;
-    const question = `according to the country : ${conutry} and the date for arriving to that place : ${date} and the amount of days to stay : ${daysToStay}
-       I want to give me a list of things that I need to pack according to the weather there at that time, make the list to made of clothes , shoes, and accesories for the weather  `;
+
+    const activitiesString = activities.join(",");
+    const question = `I will give you 4 parameters: destination, arrival date, amount of days to stay, and a list of activities to do there. 
+                    You will give me in return a list of items that I need to pack for that trip, considering the weather as well. 
+                    The parameters are: 
+                    Destination: ${destination},
+                    Arrival date: ${arrivaleDate},
+                    Amount of days to stay: ${days},
+                    List of activities: ${activitiesString}.
+                      when you give me the list do not tell me why I need each one . 
+                      dont forget to tell me about the basics as well such as passport, phone , cable charger etc . 
+                    `;
 
     try {
       console.log("Sending request to the server...");
@@ -65,22 +113,56 @@ export default function TabTwoScreen() {
     }
   };
 
+  const validateForm = () => {
+    const errors = {
+      destination: destination.trim() === "",
+      days: days.trim() === "" || isNaN(Number(days)) || Number(days) <= 0,
+      activities: activities.length === 0,
+    };
+    return errors;
+  };
+
   const formattedDate = arrivaleDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.container}>
           <Text style={styles.title}>Plan Your Trip</Text>
 
           {/* Destination Input */}
           <Text style={styles.label}>Destination:</Text>
-          <TextInput
-            style={styles.input}
+          <GooglePlacesAutocomplete
+            ref={googlePlacesRef}
+            listViewDisplayed={false}
             placeholder="Enter destination"
-            value={destination}
-            onChangeText={setDestination}
-            placeholderTextColor="#aaa"
+            onPress={(data, details = null) => {
+              console.log("I am onpress");
+              setDestination(data.description);
+              googlePlacesRef.current?.setAddressText(data.description);
+            }}
+            query={{
+              key: googleApiKey,
+              types: "(cities)",
+            }}
+            styles={{
+              textInputContainer: styles.autocompleteContainer,
+              textInput: styles.autocompleteInput,
+            }}
+            fetchDetails={true}
+            enablePoweredByContainer={false}
+            minLength={1}
+            onFail={(error) => console.error(error)}
+            onNotFound={() => console.log("no results")}
+            textInputProps={{
+              value: destination,
+              onChangeText: (text) => {
+                setDestination(text);
+              },
+            }}
           />
 
           {/* Days Input */}
@@ -119,36 +201,68 @@ export default function TabTwoScreen() {
               onChange={handleDateChange}
             />
           )}
-
-          {/* Generate Pack List Button */}
-          <TouchableOpacity style={styles.button} onPress={generatePackList}>
-            <Text style={styles.buttonText}>Generate Pack List</Text>
+          <TouchableOpacity
+            style={styles.selectActivitiesButton}
+            onPress={() => setModalVisible(true)}
+            accessibilityLabel="Select activities"
+          >
+            <Text style={styles.selectActivitiesButtonText}>
+              Select Activities
+            </Text>
           </TouchableOpacity>
+          <View style={styles.inputContainer}>
+            <Text style={styles.activitiesText}>
+              Selected activities: {activities.join(", ")}
+            </Text>
+            {showErrors && validateForm().activities && (
+              <Text style={styles.errorText}>
+                Please select at least one activity
+              </Text>
+            )}
 
-          {/* Loading Indicator */}
-          {loading && (
-            <ActivityIndicator
-              size="large"
-              color="#007BFF"
-              style={{ marginTop: 20 }}
-            />
-          )}
+            {/* Generate Pack List Button */}
+            <TouchableOpacity style={styles.button} onPress={generatePackList}>
+              <Text style={styles.buttonText}>Generate Pack List</Text>
+            </TouchableOpacity>
 
-          {/* Packing List Display */}
-          {packingList.length > 0 && !loading && (
-            <View style={styles.listContainer}>
-              <Text style={styles.listTitle}>Packing List:</Text>
-              <FlatList
-                data={packingList}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item }) => (
-                  <Text style={styles.listItem}>• {item}</Text>
-                )}
+            {/* Loading Indicator */}
+            {loading && (
+              <ActivityIndicator
+                size="large"
+                color="#007BFF"
+                style={{ marginTop: 20 }}
               />
-            </View>
-          )}
+            )}
+
+            {/* Packing List Display */}
+            {packingList.length > 0 && !loading && (
+              <View style={styles.listContainer}>
+                <Text style={styles.listTitle}>Packing List:</Text>
+                <FlatList
+                  data={packingList}
+                  keyExtractor={(item, index) => index.toString()}
+                  renderItem={({ item }) => (
+                    <Text style={styles.listItem}>• {item}</Text>
+                  )}
+                />
+              </View>
+            )}
+          </View>
         </View>
       </ScrollView>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <ActivitySelector
+          activities={ACTIVITIES}
+          selectedActivities={activities}
+          onToggleActivity={toggleActivity}
+          onClose={() => setModalVisible(false)}
+        />
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -198,6 +312,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+  selectActivitiesButton: {
+    backgroundColor: "#007AFF",
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 15,
+  },
+  selectActivitiesButtonText: {
+    color: "white",
+    textAlign: "center",
+    fontSize: 16,
+  },
   listContainer: {
     marginTop: 20,
     padding: 16,
@@ -219,5 +344,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#555",
     marginBottom: 4,
+  },
+  autocompleteContainer: {
+    borderColor: "gray",
+    borderWidth: 1,
+    borderRadius: 5,
+  },
+  autocompleteInput: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+  },
+  inputContainer: {
+    marginBottom: 15,
+  },
+  activitiesText: {
+    marginBottom: 5,
+  },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    marginTop: 5,
   },
 });
