@@ -7,16 +7,14 @@ import {
   TextInput,
   SafeAreaView,
   ScrollView,
-  Modal,
   TouchableOpacity,
-  Alert,
   FlatList,
 } from "react-native";
 
 export default function TabTwoScreen() {
-  const [destination, setDestination] = useState("Russia");
+  const [destination, setDestination] = useState("island");
   const [days, setDays] = useState("12");
-  const [arrivaleDate, setArrivaleDate] = useState("2024-12-01");
+  const [arrivaleDate, setArrivaleDate] = useState("2024-01-01");
   const [packingList, setPackingList] = useState([]);
 
   const generatePackList = async () => {
@@ -25,7 +23,7 @@ export default function TabTwoScreen() {
     const date = new Date();
     const daysToStay = 12;
     const question = `according to the country : ${conutry} and the date for arriving to that place : ${date} and the amount of days to stay : ${daysToStay}
-       I want to give me a list of things that I need to pack according to the weather there at that time `;
+       I want to give me a list of things that I need to pack according to the weather there at that time, make the list to made of clothes , shoes, and accesories for the weather  `;
     try {
       console.log("Sending request to the server...");
       const response = await axios.post(
@@ -47,68 +45,77 @@ export default function TabTwoScreen() {
       console.error("Error calling the server:", error.message);
     }
   };
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Plan Your Trip</Text>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          <Text style={styles.title}>Plan Your Trip</Text>
 
-        {/* Destination Input */}
-        <Text style={styles.label}>Destination:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter destination"
-          value={destination}
-          onChangeText={setDestination}
-          placeholderTextColor="#aaa"
-        />
+          {/* Destination Input */}
+          <Text style={styles.label}>Destination:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter destination"
+            value={destination}
+            onChangeText={setDestination}
+            placeholderTextColor="#aaa"
+          />
 
-        {/* Days Input */}
-        <Text style={styles.label}>Number of Days:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter number of days"
-          keyboardType="numeric"
-          value={days}
-          onChangeText={setDays}
-          placeholderTextColor="#aaa"
-        />
+          {/* Days Input */}
+          <Text style={styles.label}>Number of Days:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter number of days"
+            keyboardType="numeric"
+            value={days}
+            onChangeText={setDays}
+            placeholderTextColor="#aaa"
+          />
 
-        {/* Arrival Date Input */}
-        <Text style={styles.label}>Arrival Date:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter arrival date (YYYY-MM-DD)"
-          value={arrivaleDate}
-          onChangeText={setArrivaleDate}
-          placeholderTextColor="#aaa"
-        />
-        {/* Generate Pack List Button */}
-        <TouchableOpacity style={styles.button} onPress={generatePackList}>
-          <Text style={styles.buttonText}>Generate Pack List</Text>
-        </TouchableOpacity>
-        {/* Packing List Display */}
-        {packingList.length > 0 && (
-          <View style={styles.listContainer}>
-            <Text style={styles.listTitle}>Packing List:</Text>
-            <FlatList
-              data={packingList}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={({ item }) => (
-                <Text style={styles.listItem}>• {item}</Text>
-              )}
-            />
-          </View>
-        )}
-      </View>
+          {/* Arrival Date Input */}
+          <Text style={styles.label}>Arrival Date:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter arrival date (YYYY-MM-DD)"
+            value={arrivaleDate}
+            onChangeText={setArrivaleDate}
+            placeholderTextColor="#aaa"
+          />
+
+          {/* Generate Pack List Button */}
+          <TouchableOpacity style={styles.button} onPress={generatePackList}>
+            <Text style={styles.buttonText}>Generate Pack List</Text>
+          </TouchableOpacity>
+
+          {/* Packing List Display */}
+          {packingList.length > 0 && (
+            <View style={styles.listContainer}>
+              <Text style={styles.listTitle}>Packing List:</Text>
+              <FlatList
+                data={packingList}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={({ item }) => (
+                  <Text style={styles.listItem}>• {item}</Text>
+                )}
+              />
+            </View>
+          )}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    padding: 20,
+  },
   container: {
     flex: 1,
     justifyContent: "center",
-    padding: 20,
     backgroundColor: "#f8f9fa",
   },
   title: {
@@ -150,7 +157,7 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: "#fff",
     borderRadius: 8,
-    elevation: 2, // Adds a subtle shadow for Android
+    elevation: 2,
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 4,
