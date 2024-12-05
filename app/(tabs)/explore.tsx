@@ -9,15 +9,27 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
+  Platform,
 } from "react-native";
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 
 export default function TabTwoScreen() {
   const [destination, setDestination] = useState("israel");
   const [days, setDays] = useState("12");
-  const [arrivaleDate, setArrivaleDate] = useState("2024-11-01");
+  const [arrivaleDate, setArrivaleDate] = useState(new Date());
   const [packingList, setPackingList] = useState([]);
+  const [showPicker, setShowPicker] = useState(false);
+
+  const handleDateChange = (event: DateTimePickerEvent, date?: Date) => {
+    if (date) {
+      setArrivaleDate(date); // Update the selected date
+    }
+  };
 
   const generatePackList = async () => {
+    setShowPicker(false);
     const baseUrl = "http://172.20.10.4:5000";
     const conutry = "Israel";
     const date = new Date(arrivaleDate);
@@ -45,6 +57,7 @@ export default function TabTwoScreen() {
       console.error("Error calling the server:", error.message);
     }
   };
+  const formattedDate = arrivaleDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -74,14 +87,31 @@ export default function TabTwoScreen() {
           />
 
           {/* Arrival Date Input */}
-          <Text style={styles.label}>Arrival Date:</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter arrival date (YYYY-MM-DD)"
-            value={arrivaleDate}
-            onChangeText={setArrivaleDate}
-            placeholderTextColor="#aaa"
-          />
+          <Text style={styles.label}>Select a Date:</Text>
+          {/* Input to trigger the Date Picker */}
+          <TouchableOpacity
+            onPress={() => {
+              setShowPicker((prev) => !prev);
+            }}
+          >
+            <TextInput
+              style={{ ...styles.input, pointerEvents: "none" }}
+              value={formattedDate}
+              editable={false} // Prevent typing; use the picker instead
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor="#aaa"
+            />
+          </TouchableOpacity>
+
+          {/* Date Picker */}
+          {showPicker && (
+            <DateTimePicker
+              value={arrivaleDate}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={handleDateChange}
+            />
+          )}
 
           {/* Generate Pack List Button */}
           <TouchableOpacity style={styles.button} onPress={generatePackList}>
