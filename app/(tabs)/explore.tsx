@@ -12,15 +12,15 @@ import {
 } from "react-native";
 
 export default function TabTwoScreen() {
-  const [destination, setDestination] = useState("island");
+  const [destination, setDestination] = useState("israel");
   const [days, setDays] = useState("12");
-  const [arrivaleDate, setArrivaleDate] = useState("2024-01-01");
+  const [arrivaleDate, setArrivaleDate] = useState("2024-11-01");
   const [packingList, setPackingList] = useState([]);
 
   const generatePackList = async () => {
     const baseUrl = "http://172.20.10.4:5000";
     const conutry = "Israel";
-    const date = new Date();
+    const date = new Date(arrivaleDate);
     const daysToStay = 12;
     const question = `according to the country : ${conutry} and the date for arriving to that place : ${date} and the amount of days to stay : ${daysToStay}
        I want to give me a list of things that I need to pack according to the weather there at that time, make the list to made of clothes , shoes, and accesories for the weather  `;
