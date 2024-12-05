@@ -39,9 +39,9 @@ export default function TabTwoScreen() {
       const cleanedList = response.data
         .trim()
         .split("\n")
-        .map((line) => line.replace(/^\d+\.\s*/, "").trim());
+        .map((line: string) => line.replace(/^\d+\.\s*/, "").trim());
       setPackingList(cleanedList);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error calling the server:", error.message);
     }
   };
