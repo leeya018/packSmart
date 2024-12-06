@@ -15,6 +15,7 @@ const openai = new OpenAI({
 app.post("/api/gpt", async (req, res) => {
   console.log("I am in the server");
   const { question } = req.body;
+  console.log(question);
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",

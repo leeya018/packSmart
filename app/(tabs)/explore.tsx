@@ -75,7 +75,7 @@ export default function TabTwoScreen() {
     setShowPicker(false);
     setPackingList([]); // Clear previous packing list
     setLoading(true); // Show loading spinner
-    const baseUrl = "http://172.20.10.4:5000";
+    const baseUrl = "http://192.168.0.103:5000";
 
     const activitiesString = activities.join(",");
     const question = `I will give you 4 parameters: destination, arrival date, amount of days to stay, and a list of activities to do there. 
@@ -88,6 +88,8 @@ export default function TabTwoScreen() {
                       when you give me the list do not tell me why I need each one . 
                       dont forget to tell me about the basics as well such as passport, phone , cable charger etc . 
                     `;
+
+    console.log(question);
 
     try {
       console.log("Sending request to the server...");
@@ -125,57 +127,61 @@ export default function TabTwoScreen() {
   const formattedDate = arrivaleDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.container}>
           <Text style={styles.title}>Plan Your Trip</Text>
-
-          {/* Destination Input */}
-          <Text style={styles.label}>Destination:</Text>
-          <GooglePlacesAutocomplete
-            ref={googlePlacesRef}
-            listViewDisplayed={false}
-            placeholder="Enter destination"
-            onPress={(data, details = null) => {
-              console.log("I am onpress");
-              setDestination(data.description);
-              googlePlacesRef.current?.setAddressText(data.description);
-            }}
-            query={{
-              key: googleApiKey,
-              types: "(cities)",
-            }}
-            styles={{
-              textInputContainer: styles.autocompleteContainer,
-              textInput: styles.autocompleteInput,
-            }}
-            fetchDetails={true}
-            enablePoweredByContainer={false}
-            minLength={1}
-            onFail={(error) => console.error(error)}
-            onNotFound={() => console.log("no results")}
-            textInputProps={{
-              value: destination,
-              onChangeText: (text) => {
-                setDestination(text);
-              },
-            }}
-          />
-
+          <View style={styles.inputContainer}>
+            {/* Destination Input */}
+            <Text style={styles.label}>Destination:</Text>
+            <GooglePlacesAutocomplete
+              ref={googlePlacesRef}
+              listViewDisplayed={false}
+              placeholder="Enter destination"
+              onPress={(data, details = null) => {
+                console.log("I am onpress");
+                setDestination(data.description);
+                googlePlacesRef.current?.setAddressText(data.description);
+              }}
+              query={{
+                key: googleApiKey,
+                types: "(cities)",
+              }}
+              styles={{
+                textInputContainer: [
+                  styles.autocompleteContainer,
+                  { marginBottom: 0 }, // Reduce bottom margin
+                ],
+                textInput: styles.autocompleteInput,
+              }}
+              fetchDetails={true}
+              enablePoweredByContainer={false}
+              minLength={1}
+              onFail={(error) => console.error(error)}
+              onNotFound={() => console.log("no results")}
+              textInputProps={{
+                value: destination,
+                onChangeText: (text) => {
+                  setDestination(text);
+                },
+              }}
+            />
+          </View>
           {/* Days Input */}
-          <Text style={styles.label}>Number of Days:</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter number of days"
-            keyboardType="numeric"
-            value={days}
-            onChangeText={setDays}
-            placeholderTextColor="#aaa"
-          />
-
+          <View style={{ marginBottom: 10 }}>
+            <Text style={styles.label}>Number of Days:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter number of days"
+              keyboardType="numeric"
+              value={days}
+              onChangeText={setDays}
+              placeholderTextColor="#aaa"
+            />
+          </View>
           {/* Arrival Date Input */}
           <Text style={styles.label}>Select a Date:</Text>
           <TouchableOpacity
@@ -296,10 +302,52 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     fontSize: 16,
-    marginBottom: 16,
+    marginBottom: 10, // Reduce spacing
     backgroundColor: "#fff",
     color: "#333",
   },
+  autocompleteContainer: {
+    borderColor: "gray",
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 10, // Adjust margin here
+  },
+  autocompleteInput: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+  },
+  // scrollContainer: {
+  //   flexGrow: 1,
+  //   justifyContent: "center",
+  //   padding: 20,
+  // },
+  // container: {
+  //   flex: 1,
+  //   justifyContent: "center",
+  //   backgroundColor: "#f8f9fa",
+  // },
+  // title: {
+  //   fontSize: 24,
+  //   fontWeight: "bold",
+  //   marginBottom: 20,
+  //   textAlign: "center",
+  //   color: "#333",
+  // },
+  // label: {
+  //   fontSize: 16,
+  //   marginBottom: 8,
+  //   color: "#555",
+  // },
+  // input: {
+  //   borderWidth: 1,
+  //   borderColor: "#ccc",
+  //   borderRadius: 8,
+  //   padding: 10,
+  //   fontSize: 16,
+  //   marginBottom: 16,
+  //   backgroundColor: "#fff",
+  //   color: "#333",
+  // },
   button: {
     backgroundColor: "#007BFF",
     padding: 15,
@@ -345,15 +393,15 @@ const styles = StyleSheet.create({
     color: "#555",
     marginBottom: 4,
   },
-  autocompleteContainer: {
-    borderColor: "gray",
-    borderWidth: 1,
-    borderRadius: 5,
-  },
-  autocompleteInput: {
-    fontSize: 16,
-    paddingHorizontal: 10,
-  },
+  // autocompleteContainer: {
+  //   borderColor: "gray",
+  //   borderWidth: 1,
+  //   borderRadius: 5,
+  // },
+  // autocompleteInput: {
+  //   fontSize: 16,
+  //   paddingHorizontal: 10,
+  // },
   inputContainer: {
     marginBottom: 15,
   },
