@@ -11,6 +11,7 @@ import {
   FlatList,
   ActivityIndicator,
   Platform,
+  Keyboard,
 } from "react-native";
 import DateTimePicker, {
   DateTimePickerEvent,
@@ -124,6 +125,10 @@ export default function App() {
     }
   };
 
+  const handleDismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
+
   const formattedDate = arrivaleDate.toISOString().split("T")[0];
 
   return (
@@ -176,7 +181,9 @@ export default function App() {
           placeholder="Enter number of days"
           keyboardType="numeric"
           value={days}
+          maxLength={2}
           onChangeText={setDays}
+          onBlur={handleDismissKeyboard}
         />
 
         {/* Arrival Date Picker */}
@@ -184,6 +191,7 @@ export default function App() {
         <TouchableOpacity
           onPress={(e) => {
             // e.stopPropagation();
+            handleDismissKeyboard();
             setShowPicker((prev) => !prev);
           }}
         >
@@ -252,6 +260,7 @@ export default function App() {
           selectedActivities={activities}
           onToggleActivity={toggleActivity}
           onClose={() => setModalVisible(false)}
+          onCloseKeyboard={handleDismissKeyboard}
         />
       </Modal>
     </SafeAreaView>

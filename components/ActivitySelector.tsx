@@ -12,6 +12,7 @@ interface ActivitySelectorProps {
   selectedActivities: string[];
   onToggleActivity: (activity: string) => void;
   onClose: () => void;
+  onCloseKeyboard: () => void;
 }
 
 const ActivitySelector: React.FC<ActivitySelectorProps> = ({
@@ -19,6 +20,7 @@ const ActivitySelector: React.FC<ActivitySelectorProps> = ({
   selectedActivities,
   onToggleActivity,
   onClose,
+  onCloseKeyboard,
 }) => {
   return (
     <View style={styles.centeredView}>
@@ -47,7 +49,13 @@ const ActivitySelector: React.FC<ActivitySelectorProps> = ({
             </TouchableOpacity>
           ))}
         </ScrollView>
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={() => {
+            onClose();
+            onCloseKeyboard();
+          }}
+        >
           <Text style={styles.closeButtonText}>Done</Text>
         </TouchableOpacity>
       </View>
