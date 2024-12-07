@@ -1,5 +1,4 @@
 export function generatePackingList(
-  destination: string,
   days: number,
   activities: string[]
 ): string[] {
@@ -17,6 +16,7 @@ export function generatePackingList(
 
   // Add clothing items based on the number of days
   clothingItems.forEach((item) => {
+    // console.log(`${item} (${days})`);
     packingList.push(`${item} (${days})`);
   });
 
@@ -46,6 +46,43 @@ export function generatePackingList(
         break;
       case "camping":
         packingList.push("Tent", "Sleeping bag", "Camping stove");
+        break;
+      case "snorkeling":
+        packingList.push("Snorkel", "Fins", "Underwater camera");
+        break;
+      case "scuba diving":
+        packingList.push("Diving suit", "Regulator", "Dive computer");
+        break;
+      case "surfing":
+        packingList.push("Surfboard", "Wetsuit", "Wax");
+        break;
+      case "kayaking":
+        packingList.push("Kayak", "Life jacket", "Dry bag");
+        break;
+      case "cycling":
+        packingList.push("Bicycle", "Helmet", "Cycling gloves");
+        break;
+      case "photography":
+        packingList.push("Camera", "Tripod", "Extra batteries");
+        break;
+      case "wildlife watching":
+        packingList.push("Binoculars", "Field guide", "Camouflage clothing");
+        break;
+      case "museum visits":
+        packingList.push("Notebook", "Pen", "Museum guidebook");
+        break;
+      case "food tours":
+        packingList.push(
+          "Comfortable shoes",
+          "Reusable utensils",
+          "Notebook for food notes"
+        );
+        break;
+      case "yoga retreats":
+        packingList.push("Yoga mat", "Comfortable clothing", "Water bottle");
+        break;
+      default:
+        console.warn(`Activity "${activity}" not recognized.`);
         break;
     }
   });
