@@ -19,6 +19,22 @@ import axios from "axios";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import Constants from "expo-constants";
 import ActivitySelector from "@/components/ActivitySelector";
+import { MaterialIcons } from "@expo/vector-icons";
+
+const basicItems: string[] = [
+  "Passport",
+  "Phone charger",
+  "Toothbrush",
+  "Toothpaste",
+  "Deodorant",
+];
+
+const clothingItems: string[] = [
+  "Underwear",
+  "Socks",
+  "T-shirts",
+  "Pants/shorts",
+];
 
 const ACTIVITIES = [
   "Swimming",
@@ -42,26 +58,25 @@ const ACTIVITIES = [
 ];
 
 export default function TabTwoScreen() {
-  const [destination, setDestination] = useState("israel");
-  const [days, setDays] = useState("12");
+  const [destination, setDestination] = useState("");
+  const [days, setDays] = useState("");
   const [arrivaleDate, setArrivaleDate] = useState(new Date());
   const [activities, setActivities] = useState<string[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
-
-  const [packingList, setPackingList] = useState([]);
-
+  const [packingList, setPackingList] = useState<string[]>([]);
   const [showPicker, setShowPicker] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showErrors, setShowErrors] = useState(false);
 
   const googlePlacesRef = useRef<any>(null);
   const googleApiKey = Constants?.expoConfig?.extra?.googleApiKey;
 
   const handleDateChange = (event: DateTimePickerEvent, date?: Date) => {
     if (date) {
-      setArrivaleDate(date); // Update the selected date
+      setArrivaleDate(date);
     }
   };
+
+  console.log({ destination });
 
   const toggleActivity = (activity: string) => {
     setActivities((prev) =>
@@ -78,16 +93,14 @@ export default function TabTwoScreen() {
     const baseUrl = "http://192.168.0.103:5000";
 
     const activitiesString = activities.join(",");
-    const question = `I will give you 4 parameters: destination, arrival date, amount of days to stay, and a list of activities to do there. 
-                    You will give me in return a list of items that I need to pack for that trip, considering the weather as well. 
+    const question = `I will give you 4 parameters: destination, arrival date, amount of days to stay, and a list of activities to do there.
+    You will give me in return a list of items that I need to pack for that trip, considering the weather as well.
                     The parameters are: 
                     Destination: ${destination},
                     Arrival date: ${arrivaleDate},
                     Amount of days to stay: ${days},
                     List of activities: ${activitiesString}.
-                      when you give me the list do not tell me why I need each one . 
-                      dont forget to tell me about the basics as well such as passport, phone , cable charger etc . 
-                    `;
+                      when you give me the list do not tell me why I need each one . `;
 
     console.log(question);
 
@@ -96,166 +109,143 @@ export default function TabTwoScreen() {
       const response = await axios.post(
         `${baseUrl}/api/gpt`,
         { question },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
-      console.log("Response from server:", response.data);
-      const cleanedList = response.data
+      const trimmedPgtList = response.data
         .trim()
         .split("\n")
         .map((line: string) => line.replace(/^\d+\.\s*/, "").trim());
-      setPackingList(cleanedList);
+
+      const totalList: string[] = [
+        ...basicItems,
+        ...clothingItems,
+        ...trimmedPgtList,
+      ];
+      setPackingList(totalList);
     } catch (error: any) {
-      console.error("Error calling the server:", error.message);
+      console.error("Error:", error.message);
     } finally {
-      setLoading(false); // Hide loading spinner
+      setLoading(false);
     }
   };
 
-  const validateForm = () => {
-    const errors = {
-      destination: destination.trim() === "",
-      days: days.trim() === "" || isNaN(Number(days)) || Number(days) <= 0,
-      activities: activities.length === 0,
-    };
-    return errors;
-  };
-
-  const formattedDate = arrivaleDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+  const formattedDate = arrivaleDate.toISOString().split("T")[0];
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
-        contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.scrollContainer}
+        // onTouchEnd={() => setShowPicker(false)}
       >
-        <View style={styles.container}>
-          <Text style={styles.title}>Plan Your Trip</Text>
-          <View style={styles.inputContainer}>
-            {/* Destination Input */}
-            <Text style={styles.label}>Destination:</Text>
-            <GooglePlacesAutocomplete
-              ref={googlePlacesRef}
-              listViewDisplayed={false}
-              placeholder="Enter destination"
-              onPress={(data, details = null) => {
-                console.log("I am onpress");
-                setDestination(data.description);
-                googlePlacesRef.current?.setAddressText(data.description);
-              }}
-              query={{
-                key: googleApiKey,
-                types: "(cities)",
-              }}
-              styles={{
-                textInputContainer: [
-                  styles.autocompleteContainer,
-                  { marginBottom: 0 }, // Reduce bottom margin
-                ],
-                textInput: styles.autocompleteInput,
-              }}
-              fetchDetails={true}
-              enablePoweredByContainer={false}
-              minLength={1}
-              onFail={(error) => console.error(error)}
-              onNotFound={() => console.log("no results")}
-              textInputProps={{
-                value: destination,
-                onChangeText: (text) => {
-                  setDestination(text);
-                },
-              }}
+        <Text style={styles.title}>Plan Your Perfect Trip</Text>
+
+        {/* Destination Input */}
+        <Text style={styles.label}>Destination</Text>
+        <GooglePlacesAutocomplete
+          ref={googlePlacesRef}
+          listViewDisplayed={false}
+          placeholder="Enter destination"
+          onPress={(data, details = null) => {
+            console.log("I am onpress");
+            setDestination(data.description);
+            googlePlacesRef.current?.setAddressText(data.description);
+          }}
+          query={{
+            key: googleApiKey,
+            types: "(cities)",
+          }}
+          styles={{
+            textInputContainer: [
+              styles.autocompleteContainer,
+              { marginBottom: 0 }, // Reduce bottom margin
+            ],
+            textInput: styles.autocompleteInput,
+          }}
+          fetchDetails={true}
+          enablePoweredByContainer={false}
+          minLength={1}
+          onFail={(error) => console.error(error)}
+          onNotFound={() => console.log("no results")}
+          textInputProps={{
+            value: destination,
+            onChangeText: (text) => {
+              setDestination(text);
+            },
+          }}
+        />
+        {/* Number of Days */}
+        <Text style={styles.label}>Number of Days</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter number of days"
+          keyboardType="numeric"
+          value={days}
+          onChangeText={setDays}
+        />
+
+        {/* Arrival Date Picker */}
+        <Text style={styles.label}>Arrival Date</Text>
+        <TouchableOpacity
+          onPress={(e) => {
+            // e.stopPropagation();
+            setShowPicker((prev) => !prev);
+          }}
+        >
+          <View style={{ ...styles.datePicker, pointerEvents: "none" }}>
+            <Text style={styles.datePickerText}>{formattedDate}</Text>
+            <MaterialIcons name="date-range" size={24} color="#007BFF" />
+          </View>
+        </TouchableOpacity>
+        {showPicker && (
+          <DateTimePicker
+            value={arrivaleDate}
+            mode="date"
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            onChange={handleDateChange}
+          />
+        )}
+
+        {/* Activities Selector */}
+        <TouchableOpacity
+          style={styles.activitiesButton}
+          onPress={() => {
+            setShowPicker(false);
+            setModalVisible(true);
+          }}
+        >
+          <Text style={styles.activitiesButtonText}>Select Activities</Text>
+        </TouchableOpacity>
+        <Text style={styles.activitiesText}>
+          Selected: {activities.join(", ") || "None"}
+        </Text>
+
+        {/* Generate Pack List Button */}
+        <TouchableOpacity
+          style={styles.generateButton}
+          onPress={generatePackList}
+        >
+          <Text style={styles.generateButtonText}>Generate Packing List</Text>
+        </TouchableOpacity>
+
+        {/* Loading Spinner */}
+        {loading && <ActivityIndicator size="large" color="#007BFF" />}
+
+        {/* Packing List */}
+        {packingList.length > 0 && !loading && (
+          <View style={styles.packingList}>
+            <Text style={styles.packingTitle}>Packing List</Text>
+            <FlatList
+              data={packingList}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }) => (
+                <Text style={styles.packingItem}>• {item}</Text>
+              )}
             />
           </View>
-          {/* Days Input */}
-          <View style={{ marginBottom: 10 }}>
-            <Text style={styles.label}>Number of Days:</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter number of days"
-              keyboardType="numeric"
-              value={days}
-              onChangeText={setDays}
-              placeholderTextColor="#aaa"
-            />
-          </View>
-          {/* Arrival Date Input */}
-          <Text style={styles.label}>Select a Date:</Text>
-          <TouchableOpacity
-            onPress={() => {
-              setShowPicker((prev) => !prev);
-            }}
-          >
-            <TextInput
-              style={{ ...styles.input, pointerEvents: "none" }}
-              value={formattedDate}
-              editable={false} // Prevent typing; use the picker instead
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor="#aaa"
-            />
-          </TouchableOpacity>
-
-          {/* Date Picker */}
-          {showPicker && (
-            <DateTimePicker
-              value={arrivaleDate}
-              mode="date"
-              display={Platform.OS === "ios" ? "spinner" : "default"}
-              onChange={handleDateChange}
-            />
-          )}
-          <TouchableOpacity
-            style={styles.selectActivitiesButton}
-            onPress={() => setModalVisible(true)}
-            accessibilityLabel="Select activities"
-          >
-            <Text style={styles.selectActivitiesButtonText}>
-              Select Activities
-            </Text>
-          </TouchableOpacity>
-          <View style={styles.inputContainer}>
-            <Text style={styles.activitiesText}>
-              Selected activities: {activities.join(", ")}
-            </Text>
-            {showErrors && validateForm().activities && (
-              <Text style={styles.errorText}>
-                Please select at least one activity
-              </Text>
-            )}
-
-            {/* Generate Pack List Button */}
-            <TouchableOpacity style={styles.button} onPress={generatePackList}>
-              <Text style={styles.buttonText}>Generate Pack List</Text>
-            </TouchableOpacity>
-
-            {/* Loading Indicator */}
-            {loading && (
-              <ActivityIndicator
-                size="large"
-                color="#007BFF"
-                style={{ marginTop: 20 }}
-              />
-            )}
-
-            {/* Packing List Display */}
-            {packingList.length > 0 && !loading && (
-              <View style={styles.listContainer}>
-                <Text style={styles.listTitle}>Packing List:</Text>
-                <FlatList
-                  data={packingList}
-                  keyExtractor={(item, index) => index.toString()}
-                  renderItem={({ item }) => (
-                    <Text style={styles.listItem}>• {item}</Text>
-                  )}
-                />
-              </View>
-            )}
-          </View>
-        </View>
+        )}
       </ScrollView>
+      {/* Activities Modal */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -274,37 +264,92 @@ export default function TabTwoScreen() {
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: "center",
-    padding: 20,
-  },
   container: {
     flex: 1,
-    justifyContent: "center",
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#f0f8ff",
+  },
+  scrollContainer: {
+    padding: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 20,
     textAlign: "center",
-    color: "#333",
+    marginBottom: 20,
+    color: "#007BFF",
   },
   label: {
-    fontSize: 16,
-    marginBottom: 8,
-    color: "#555",
+    fontSize: 18,
+    color: "#333",
+    marginBottom: 10,
   },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 16,
-    marginBottom: 10, // Reduce spacing
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 20,
     backgroundColor: "#fff",
+    fontSize: 16,
+  },
+  datePicker: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    padding: 12,
+    backgroundColor: "#fff",
+  },
+  datePickerText: {
+    fontSize: 16,
     color: "#333",
+    flex: 1,
+  },
+  activitiesButton: {
+    backgroundColor: "#32CD32",
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 20,
+    marginTop: 20,
+  },
+  activitiesButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    textAlign: "center",
+  },
+  activitiesText: {
+    fontSize: 16,
+    marginBottom: 20,
+    color: "#333",
+  },
+  generateButton: {
+    backgroundColor: "#007BFF",
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  generateButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    textAlign: "center",
+  },
+  packingList: {
+    backgroundColor: "#e6f7ff",
+    borderRadius: 10,
+    padding: 15,
+    marginTop: 20,
+  },
+  packingTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: "#007BFF",
+  },
+  packingItem: {
+    fontSize: 16,
+    color: "#333",
+    marginBottom: 8,
   },
   autocompleteContainer: {
     borderColor: "gray",
@@ -315,102 +360,5 @@ const styles = StyleSheet.create({
   autocompleteInput: {
     fontSize: 16,
     paddingHorizontal: 10,
-  },
-  // scrollContainer: {
-  //   flexGrow: 1,
-  //   justifyContent: "center",
-  //   padding: 20,
-  // },
-  // container: {
-  //   flex: 1,
-  //   justifyContent: "center",
-  //   backgroundColor: "#f8f9fa",
-  // },
-  // title: {
-  //   fontSize: 24,
-  //   fontWeight: "bold",
-  //   marginBottom: 20,
-  //   textAlign: "center",
-  //   color: "#333",
-  // },
-  // label: {
-  //   fontSize: 16,
-  //   marginBottom: 8,
-  //   color: "#555",
-  // },
-  // input: {
-  //   borderWidth: 1,
-  //   borderColor: "#ccc",
-  //   borderRadius: 8,
-  //   padding: 10,
-  //   fontSize: 16,
-  //   marginBottom: 16,
-  //   backgroundColor: "#fff",
-  //   color: "#333",
-  // },
-  button: {
-    backgroundColor: "#007BFF",
-    padding: 15,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 20,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  selectActivitiesButton: {
-    backgroundColor: "#007AFF",
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 15,
-  },
-  selectActivitiesButtonText: {
-    color: "white",
-    textAlign: "center",
-    fontSize: 16,
-  },
-  listContainer: {
-    marginTop: 20,
-    padding: 16,
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  listTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: "#333",
-  },
-  listItem: {
-    fontSize: 16,
-    color: "#555",
-    marginBottom: 4,
-  },
-  // autocompleteContainer: {
-  //   borderColor: "gray",
-  //   borderWidth: 1,
-  //   borderRadius: 5,
-  // },
-  // autocompleteInput: {
-  //   fontSize: 16,
-  //   paddingHorizontal: 10,
-  // },
-  inputContainer: {
-    marginBottom: 15,
-  },
-  activitiesText: {
-    marginBottom: 5,
-  },
-  errorText: {
-    color: "red",
-    fontSize: 12,
-    marginTop: 5,
   },
 });
