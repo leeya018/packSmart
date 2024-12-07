@@ -21,6 +21,7 @@ import Constants from "expo-constants";
 import ActivitySelector from "@/components/ActivitySelector";
 import { MaterialIcons } from "@expo/vector-icons";
 import { generatePackingList } from "@/utils/packingListGenerator";
+import "react-native-get-random-values";
 
 const ACTIVITIES = [
   "Swimming",
